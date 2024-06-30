@@ -1,0 +1,22 @@
+.draggable-container {
+  width: 100%; /* Takes full width of the parent container */
+  height: 100%; /* Takes full height of the parent container */
+  position: relative; /* Positioning context for absolute children */
+}
+
+.content {
+  display: flex; /* Display content in a row */
+  overflow: hidden; /* Hide overflow */
+}
+
+.family-tree {
+  display: flex; /* Display family members in a row */
+  padding: 10px; /* Add padding as needed */
+}
+
+.person {
+  width: 150px; /* Adjust width of each person element */
+  height: 150px; /* Adjust height of each person element */
+  background-color: #f0f0f0; /* Example background color */
+  margin-right: 10px; /* Space between family members */
+}
