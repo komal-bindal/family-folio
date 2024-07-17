@@ -65,22 +65,10 @@ const DraggableContainer = ({ children }) => {
       onMouseMove={handleMouseMove}
       style={{
         transform: `translate(${translateX}px, ${translateY}px) scale(${scale})`,
-        overflow: "hidden", // Ensure no scroll bars are shown
+        // overflow: "hidden", // Ensure no scroll bars are shown
         touchAction: "none", // Disable browser touch gestures
       }}
     >
-      {/* Your content goes here */}
-      {/* <div className="content"> */}
-      {/* Example content to overflow horizontally */}
-      {/* <div className="family-tree"> */}
-      {/* Your family tree components */}
-      {/* <div className="person">Person 1</div>
-          <div className="person">Person 2</div>
-          <div className="person">Person 3</div> */}
-      {/* Add more family members as needed */}
-      {/* </div> */}
-      {/* </div> */}
-
       {children}
     </div>
   );

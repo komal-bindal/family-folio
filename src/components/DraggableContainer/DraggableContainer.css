@@ -11,7 +11,6 @@
 
 .family-tree {
   display: flex; /* Display family members in a row */
-  padding: 10px; /* Add padding as needed */
 }
 
 .person {

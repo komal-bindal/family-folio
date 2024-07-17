@@ -1,28 +1,35 @@
 import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
-import { data } from "./mockData";
 import Card from "../../components/Card";
 import ReactDOMServer from "react-dom/server";
 
-const Canvas = () => {
+const Canvas = ({ data, maxHeight }) => {
   const svgRef = useRef();
 
   useEffect(() => {
     const svg = d3.select(svgRef.current);
-    const width = 1800;
-    const height = 1800;
+
+    // Calculate dimensions based on tree structure
+    const treeHeight = data.length * 200;
+    const treeWidth = maxHeight * 300 + 200;
 
     svg.selectAll("*").remove(); // Clear previous content
 
     try {
-      const root = d3.hierarchy(data);
+      const stratify = d3
+        .stratify()
+        .id((d) => d.name)
+        .parentId((d) => d.parent);
+
+      const root = stratify(data).sort(
+        (a, b) => a.height - b.height || a.id.localeCompare(b.id)
+      );
 
       const xOffset = 200; // Adjust this value to shift the root node horizontally
-      root.x0 = height / 2;
+      root.x0 = treeHeight / 2;
       root.y0 = xOffset;
 
-      console.log(root);
-      const treeLayout = d3.tree().size([height, width]);
+      const treeLayout = d3.tree().size([treeHeight, treeWidth]);
 
       const update = (source) => {
         const treeData = treeLayout(root);
@@ -31,8 +38,21 @@ const Canvas = () => {
         const links = treeData.links();
 
         nodes.forEach((d) => {
-          d.y = d.depth * 400 + xOffset;
+          d.y = d.depth * 300 + xOffset;
         });
+
+        svg
+          .selectAll("path.dashed-line")
+          .data(nodes) // Exclude root node
+          .enter()
+          .append("path")
+          .attr("class", "dashed-line")
+          .attr("stroke", "grey")
+          .attr("stroke-width", 1)
+          .attr("stroke-dasharray", "4 4")
+          .attr("d", (d) => {
+            return `M${d.y},${source.y0 - 200} V${treeHeight}`; // Horizontal line from root to each node
+          });
 
         const node = svg
           .selectAll("g.node")
@@ -45,33 +65,12 @@ const Canvas = () => {
           .attr("transform", (d) => `translate(${source.y0},${source.x0})`)
           .on("click", click);
 
-        // nodeEnter
-        //   .append("circle")
-        //   .attr("class", "node")
-        //   .attr("r", 1e-6)
-        //   .style("fill", (d) => (d._children ? "lightsteelblue" : "#fff"));
-
-        // nodeEnter
-        //   .append("text")
-        //   .attr("dy", ".35em")
-        //   .attr("x", (d) => (d.children || d._children ? 0 : 0))
-        //   .attr("text-anchor", (d) =>
-        //     d.children || d._children ? "end" : "start"
-        //   )
-        //   .text((d) => d.data.name)
-        //   .clone(true)
-        //   .lower() // Ensures text is behind other elements
-        //   .attr("stroke-linejoin", "round") // Ensures rounded edges around text
-        //   .attr("stroke-width", 3) // Adjust as needed
-        //   .attr("stroke", "white"); // Color of the stroke should match background
-
         nodeEnter
           .append("foreignObject")
           .attr("width", 200)
           .attr("height", 200)
-          .attr("x", (d) => (d.children || d._children ? 0 : 0))
+          .attr("x", (d) => (d.children || d._children ? -100 : -100))
           .attr("y", -100)
-
           .html((d) => {
             const htmlString = ReactDOMServer.renderToString(
               <Card name={d.data.name} />
@@ -86,22 +85,12 @@ const Canvas = () => {
           .duration(200)
           .attr("transform", (d) => `translate(${d.y},${d.x})`);
 
-        // nodeUpdate
-        //   .select("circle.node")
-        //   .attr("r", 10)
-        //   .style("fill", (d) => (d._children ? "lightsteelblue" : "#fff"))
-        //   .attr("cursor", "pointer");
-
         const nodeExit = node
           .exit()
           .transition()
           .duration(200)
           .attr("transform", (d) => `translate(${source.y},${source.x})`)
           .remove();
-
-        // nodeExit.select("circle").attr("r", 1e-6);
-
-        // nodeExit.select("text").style("fill-opacity", 1e-6);
 
         const link = svg.selectAll("path.link").data(links, (d) => d.target.id);
 
@@ -162,13 +151,13 @@ const Canvas = () => {
     } catch (error) {
       console.error("Error stratifying data:", error);
     }
-  }, [data]);
+  }, [data, maxHeight]);
 
   return (
     <svg
       ref={svgRef}
-      width="1800"
-      height="1800"
+      width={maxHeight * 300 + 200} // Add extra padding for better visualization
+      height={data.length * 200}
       style={{
         scale: "0.5",
         overflow: "hidden",
